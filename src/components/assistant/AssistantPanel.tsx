@@ -2,6 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { FileText, Presentation, BookOpen, Mail } from "lucide-react";
+import { TemplateKey } from "@/lib/templates";
 
 interface Message {
   id: string;
@@ -15,16 +16,17 @@ interface Message {
 interface AssistantPanelProps {
   messages: Message[];
   isTyping: boolean;
+  onTemplateSelect?: (template: TemplateKey) => void;
 }
 
 const quickActions = [
-  { icon: FileText, label: "Report", description: "Professional report" },
-  { icon: Presentation, label: "Slides", description: "Presentation deck" },
-  { icon: BookOpen, label: "Article", description: "Academic paper" },
-  { icon: Mail, label: "Letter", description: "Formal letter" },
+  { icon: FileText, label: "Report", description: "Professional report", template: "report" as TemplateKey },
+  { icon: Presentation, label: "Slides", description: "Presentation deck", template: "slides" as TemplateKey },
+  { icon: BookOpen, label: "Article", description: "Academic paper", template: "article" as TemplateKey },
+  { icon: Mail, label: "Letter", description: "Formal letter", template: "letter" as TemplateKey },
 ];
 
-const AssistantPanel = ({ messages, isTyping }: AssistantPanelProps) => {
+const AssistantPanel = ({ messages, isTyping, onTemplateSelect }: AssistantPanelProps) => {
   return (
     <div className="flex flex-col h-full panel-chat">
       {/* Panel Header */}
@@ -52,6 +54,7 @@ const AssistantPanel = ({ messages, isTyping }: AssistantPanelProps) => {
                 {quickActions.map((action) => (
                   <button
                     key={action.label}
+                    onClick={() => onTemplateSelect?.(action.template)}
                     className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-card/80 transition-all group"
                   >
                     <action.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
