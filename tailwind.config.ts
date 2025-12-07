@@ -13,15 +13,27 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["'Instrument Serif'", "Georgia", "serif"],
+        ui: ["system-ui", "-apple-system", "sans-serif"],
+        mono: ["'JetBrains Mono'", "'SF Mono'", "monospace"],
+        chat: ["'Source Serif 4'", "Georgia", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        surface: {
+          chat: "hsl(var(--surface-chat))",
+          editor: "hsl(var(--surface-editor))",
+          preview: "hsl(var(--surface-preview))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -57,28 +69,35 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        syntax: {
+          keyword: "hsl(var(--syntax-keyword))",
+          function: "hsl(var(--syntax-function))",
+          string: "hsl(var(--syntax-string))",
+          number: "hsl(var(--syntax-number))",
+          comment: "hsl(var(--syntax-comment))",
+          markup: "hsl(var(--syntax-markup))",
+          math: "hsl(var(--syntax-math))",
+        },
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        info: "hsl(var(--info))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        glow: "var(--shadow-glow)",
+      },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
