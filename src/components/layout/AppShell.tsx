@@ -5,6 +5,9 @@ import AssistantPanel from "../assistant/AssistantPanel";
 import EditorPanel from "../editor/EditorPanel";
 import PreviewPanel from "../preview/PreviewPanel";
 import CommandBar from "../command/CommandBar";
+import { useDocuments } from "@/hooks/useDocuments";
+import { templates, TemplateKey } from "@/lib/templates";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -21,6 +24,16 @@ const AppShell = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
+
+  const {
+    tabs,
+    activeContent,
+    setActiveTab,
+    closeTab,
+    createTab,
+    updateContent,
+  } = useDocuments();
 
   const minLeftWidth = 280;
   const maxLeftWidth = 400;
@@ -34,6 +47,25 @@ const AppShell = () => {
   const handleRightResize = useCallback((delta: number) => {
     setRightWidth(prev => Math.min(maxRightWidth, Math.max(minRightWidth, prev - delta)));
   }, []);
+
+  const handleTemplateSelect = useCallback((templateKey: TemplateKey) => {
+    const template = templates[templateKey];
+    createTab(template.name, template.content);
+    
+    // Add AI message about the template
+    const aiMessage: Message = {
+      id: `ai-${Date.now()}`,
+      role: "assistant",
+      content: `I've created a new ${templateKey} document for you! The "${template.name}" file is now open in the editor with a professional template structure. Feel free to customize it or ask me to make specific changes.`,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+    setMessages(prev => [...prev, aiMessage]);
+    
+    toast({
+      title: "Template Created",
+      description: `New ${templateKey} document "${template.name}" is ready.`,
+    });
+  }, [createTab]);
 
   const handleSubmit = useCallback((message: string) => {
     // Add user message
@@ -50,6 +82,30 @@ const AppShell = () => {
     // Simulate AI response
     setTimeout(() => {
       setIsTyping(false);
+      
+      // Check for template requests
+      const lowerMessage = message.toLowerCase();
+      if (lowerMessage.includes("report")) {
+        handleTemplateSelect("report");
+        setIsProcessing(false);
+        return;
+      }
+      if (lowerMessage.includes("slide") || lowerMessage.includes("presentation")) {
+        handleTemplateSelect("slides");
+        setIsProcessing(false);
+        return;
+      }
+      if (lowerMessage.includes("article") || lowerMessage.includes("paper")) {
+        handleTemplateSelect("article");
+        setIsProcessing(false);
+        return;
+      }
+      if (lowerMessage.includes("letter")) {
+        handleTemplateSelect("letter");
+        setIsProcessing(false);
+        return;
+      }
+
       const aiMessage: Message = {
         id: `ai-${Date.now()}`,
         role: "assistant",
@@ -61,7 +117,12 @@ const AppShell = () => {
 
 This is the content you requested.`,
         actions: [
-          { label: "Apply to Document", onClick: () => console.log("Applied") },
+          { label: "Apply to Document", onClick: () => {
+            const currentContent = activeContent;
+            const newContent = currentContent + `\n\n= ${message.includes("heading") ? "New Heading" : "Document Section"}\n\nThis is the content you requested.`;
+            updateContent(newContent);
+            toast({ title: "Applied", description: "Content added to your document." });
+          }},
           { label: "Modify", onClick: () => console.log("Modify") },
           { label: "Explain Code", onClick: () => console.log("Explain") },
         ],
@@ -69,6 +130,10 @@ This is the content you requested.`,
       setMessages(prev => [...prev, aiMessage]);
       setIsProcessing(false);
     }, 1500);
+  }, [handleTemplateSelect, activeContent, updateContent]);
+
+  const togglePreviewFullscreen = useCallback(() => {
+    setIsPreviewFullscreen(prev => !prev);
   }, []);
 
   return (
@@ -81,14 +146,25 @@ This is the content you requested.`,
           className="flex-shrink-0 border-r border-border overflow-hidden"
           style={{ width: leftWidth }}
         >
-          <AssistantPanel messages={messages} isTyping={isTyping} />
+          <AssistantPanel 
+            messages={messages} 
+            isTyping={isTyping} 
+            onTemplateSelect={handleTemplateSelect}
+          />
         </div>
 
         <ResizeHandle onResize={handleLeftResize} />
 
         {/* Center Panel - Editor */}
         <div className="flex-1 min-w-0 overflow-hidden border-r border-border">
-          <EditorPanel />
+          <EditorPanel 
+            tabs={tabs}
+            activeContent={activeContent}
+            onTabClick={setActiveTab}
+            onTabClose={closeTab}
+            onNewTab={() => createTab()}
+            onContentChange={updateContent}
+          />
         </div>
 
         <ResizeHandle onResize={handleRightResize} />
@@ -96,14 +172,31 @@ This is the content you requested.`,
         {/* Right Panel - Preview */}
         <div
           className="flex-shrink-0 overflow-hidden"
-          style={{ width: rightWidth }}
+          style={{ width: isPreviewFullscreen ? '100%' : rightWidth }}
         >
-          <PreviewPanel />
+          <PreviewPanel 
+            code={activeContent}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={togglePreviewFullscreen}
+          />
         </div>
       </div>
 
       {/* Command Bar */}
-      <CommandBar onSubmit={handleSubmit} isProcessing={isProcessing} />
+      {!isPreviewFullscreen && (
+        <CommandBar onSubmit={handleSubmit} isProcessing={isProcessing} />
+      )}
+
+      {/* Fullscreen Preview Overlay */}
+      {isPreviewFullscreen && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <PreviewPanel 
+            code={activeContent}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={togglePreviewFullscreen}
+          />
+        </div>
+      )}
     </div>
   );
 };
