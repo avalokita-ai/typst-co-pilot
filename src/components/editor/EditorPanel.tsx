@@ -1,5 +1,5 @@
 import EditorToolbar from "./EditorToolbar";
-import CodeEditor from "./CodeEditor";
+import CodeEditorWithHighlighting from "./CodeEditorWithHighlighting";
 
 interface Tab {
   id: string;
@@ -34,7 +34,7 @@ const EditorPanel = ({
         onNewTab={onNewTab}
       />
       <div className="flex-1 overflow-auto">
-        <CodeEditor value={activeContent} onChange={onContentChange} />
+        <CodeEditorWithHighlighting value={activeContent} onChange={onContentChange} />
       </div>
     </div>
   );
