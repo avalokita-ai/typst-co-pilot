@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, Maximize, Minimize, X, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, Maximize, Minimize, X, AlertCircle, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -13,11 +13,11 @@ interface PreviewPanelProps {
 const PreviewPanel = ({ code = "", isFullscreen, onToggleFullscreen }: PreviewPanelProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(100);
-  const totalPages = 1;
+  const [isExporting, setIsExporting] = useState(false);
   
-  const { compiled, error, isCompiling } = useTypstCompiler(code);
+  const { compiled, error, isCompiling, pageCount, compilePdf } = useTypstCompiler(code);
 
-  const handleDownload = () => {
+  const handleDownloadTypst = () => {
     const content = code || "";
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -31,9 +31,43 @@ const PreviewPanel = ({ code = "", isFullscreen, onToggleFullscreen }: PreviewPa
     URL.revokeObjectURL(url);
     
     toast({
-      title: "Document Downloaded",
+      title: "Source Downloaded",
       description: "Your Typst source file has been downloaded.",
     });
+  };
+
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      const pdf = await compilePdf();
+      if (pdf) {
+        // Create a new Uint8Array copy to ensure proper ArrayBuffer type
+        const pdfBytes = new Uint8Array(pdf);
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "document.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "PDF Exported",
+          description: "Your document has been exported as PDF.",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Export Failed",
+        description: "Could not export PDF. Check for compilation errors.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleZoomIn = () => setZoom(prev => Math.min(200, prev + 25));
@@ -104,14 +138,14 @@ const PreviewPanel = ({ code = "", isFullscreen, onToggleFullscreen }: PreviewPa
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-xs text-muted-foreground font-mono min-w-[60px] text-center">
-            {currentPage} / {totalPages}
+            {currentPage} / {pageCount}
           </span>
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(Math.min(pageCount, currentPage + 1))}
+            disabled={currentPage === pageCount}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -140,10 +174,20 @@ const PreviewPanel = ({ code = "", isFullscreen, onToggleFullscreen }: PreviewPa
             <ZoomIn className="h-4 w-4" />
           </Button>
           <div className="w-px h-5 bg-border mx-1" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-7 w-7" 
+            onClick={handleExportPdf}
+            disabled={isExporting || !compiled}
+            title="Export PDF"
+          >
+            <FileDown className="h-4 w-4" />
+          </Button>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggleFullscreen}>
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleDownload}>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleDownloadTypst} title="Download source">
             <Download className="h-4 w-4" />
           </Button>
         </div>
