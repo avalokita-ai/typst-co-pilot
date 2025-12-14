@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import PDFReader from "./pages/PDFReader";
+import Vault from "./pages/Vault";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <PDFReader />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/vault" 
+            element={
+              <ProtectedRoute>
+                <Vault />
               </ProtectedRoute>
             } 
           />
