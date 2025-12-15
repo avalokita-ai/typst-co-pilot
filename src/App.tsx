@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import PDFReader from "./pages/PDFReader";
 import Vault from "./pages/Vault";
+import Signing from "./pages/Signing";
+import SigningNew from "./pages/SigningNew";
+import SigningDocument from "./pages/SigningDocument";
+import SigningSign from "./pages/SigningSign";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +86,38 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Vault />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/signing" 
+            element={
+              <ProtectedRoute>
+                <Signing />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/signing/new" 
+            element={
+              <ProtectedRoute>
+                <SigningNew />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/signing/document/:id" 
+            element={
+              <ProtectedRoute>
+                <SigningDocument />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/signing/sign/:id" 
+            element={
+              <ProtectedRoute>
+                <SigningSign />
               </ProtectedRoute>
             } 
           />
